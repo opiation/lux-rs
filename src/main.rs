@@ -1,48 +1,10 @@
 use actix_web::{guard, web, App, HttpResponse, HttpServer, Result};
-use async_graphql::{EmptyMutation, EmptySubscription, Object, Schema};
+use async_graphql::{EmptyMutation, EmptySubscription, Schema};
 use async_graphql_actix_web::{GraphQLRequest, GraphQLResponse};
-use uuid::Uuid;
 
-struct Query;
+pub mod schema;
 
-struct Account {
-    id: Uuid,
-    transactions: Vec<f64>,
-}
-
-#[Object]
-impl Account {
-    #[graphql(skip)]
-    pub fn with_transactions(ts: Vec<f64>) -> Self {
-        Self {
-            id: Uuid::new_v4(),
-            transactions: ts,
-        }
-    }
-
-    pub async fn id(&self) -> String {
-        self.id.to_string()
-    }
-
-    pub async fn balance(&self) -> f64 {
-        self.transactions
-            .iter()
-            .fold(0.0, |balance, txn| balance + txn)
-    }
-}
-
-#[Object]
-impl Query {
-    async fn account(&self) -> Account {
-        Account::with_transactions(vec![12.7, 0.13, 0.80, 9.12])
-    }
-
-    async fn hello(&self) -> &'static str {
-        "Hello, world!"
-    }
-}
-
-type LuxSchema = Schema<Query, EmptyMutation, EmptySubscription>;
+type LuxSchema = Schema<schema::Query, EmptyMutation, EmptySubscription>;
 
 // TODO: Serve Apollo Studio instead of GraphiQL
 const _APOLLO_STUDIO: &'static str = "<!DOCTYPE html>\
@@ -76,7 +38,8 @@ async fn serve_graphiql() -> Result<HttpResponse> {
 async fn main() -> std::io::Result<()> {
     println!("Starting Lux GraphQL server at 0.0.0.0:4000...");
 
-    let lux_schema: LuxSchema = Schema::build(Query, EmptyMutation, EmptySubscription).finish();
+    let lux_schema: LuxSchema =
+        Schema::build(schema::Query, EmptyMutation, EmptySubscription).finish();
 
     HttpServer::new(move || {
         App::new()
