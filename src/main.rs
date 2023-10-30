@@ -1,10 +1,12 @@
-use actix_web::{guard, web, App, HttpResponse, HttpServer, Result};
-use async_graphql::{EmptyMutation, EmptySubscription, Schema};
-use async_graphql_actix_web::{GraphQLRequest, GraphQLResponse};
-
 pub mod schema;
 
-type LuxSchema = Schema<schema::Query, EmptyMutation, EmptySubscription>;
+use actix_web::{guard, web, App, HttpResponse, HttpServer, Result};
+use async_graphql::{EmptySubscription, Schema};
+use async_graphql_actix_web::{GraphQLRequest, GraphQLResponse};
+use std::collections::HashMap;
+use std::sync::RwLock;
+
+type LuxSchema = Schema<schema::Query, schema::Mutation, EmptySubscription>;
 
 // TODO: Serve Apollo Studio instead of GraphiQL
 const _APOLLO_STUDIO: &'static str = "<!DOCTYPE html>\
@@ -31,15 +33,17 @@ async fn execute_graphql(schema: web::Data<LuxSchema>, req: GraphQLRequest) -> G
 async fn serve_graphiql() -> Result<HttpResponse> {
     Ok(HttpResponse::Ok()
         .content_type("text/html; charset=UTF-8")
-        .body(_APOLLO_STUDIO.clone()))
+        .body(_APOLLO_STUDIO))
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     println!("Starting Lux GraphQL server at 0.0.0.0:4000...");
 
-    let lux_schema: LuxSchema =
-        Schema::build(schema::Query, EmptyMutation, EmptySubscription).finish();
+    let accounts: RwLock<HashMap<schema::UUID, schema::Account>> = RwLock::new(HashMap::new());
+    let lux_schema: LuxSchema = Schema::build(schema::Query, schema::Mutation, EmptySubscription)
+        .data(accounts)
+        .finish();
 
     HttpServer::new(move || {
         App::new()

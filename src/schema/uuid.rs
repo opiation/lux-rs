@@ -1,14 +1,15 @@
-use async_graphql::{Object, Scalar, ScalarType};
+use async_graphql::{Scalar, ScalarType};
 
 ///
 /// A [universally unique identifier][rfc] v4
 ///
 /// [rfc]: https://www.rfc-editor.org/rfc/rfc4122
 ///
+#[derive(Eq, Hash, PartialEq)]
 pub struct UUID(String);
 
 impl UUID {
-    fn generate() -> UUID {
+    pub fn generate() -> UUID {
         UUID::from(uuid::Uuid::new_v4())
     }
 }
@@ -49,53 +50,10 @@ impl ScalarType for UUID {
     }
 }
 
-pub struct Account {
-    id: uuid::Uuid,
-    transactions: Vec<f64>,
-}
-
 impl TryInto<UUID> for String {
     type Error = uuid::Error;
 
     fn try_into(self) -> Result<UUID, uuid::Error> {
         uuid::Uuid::try_parse(self.as_str()).map(UUID::from)
-    }
-}
-
-#[Object]
-impl Account {
-    #[graphql(skip)]
-    pub fn with_transactions(ts: Vec<f64>) -> Self {
-        Self {
-            id: uuid::Uuid::new_v4(),
-            transactions: ts,
-        }
-    }
-
-    pub async fn id(&self) -> UUID {
-        UUID::from(self.id)
-    }
-
-    pub async fn balance(&self) -> f64 {
-        self.transactions
-            .iter()
-            .fold(0.0, |balance, txn| balance + txn)
-    }
-}
-
-pub struct Query;
-
-#[Object]
-impl Query {
-    async fn account(&self) -> Account {
-        Account::with_transactions(vec![12.7, 0.13, 0.80, 9.12])
-    }
-
-    async fn generate_uuid(&self) -> UUID {
-        UUID::generate()
-    }
-
-    async fn hello(&self) -> &'static str {
-        "Hello, world!"
     }
 }
