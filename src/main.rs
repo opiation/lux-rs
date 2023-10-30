@@ -8,7 +8,8 @@ use std::sync::RwLock;
 
 type LuxSchema = Schema<schema::Query, schema::Mutation, EmptySubscription>;
 
-// TODO: Serve Apollo Studio instead of GraphiQL
+/// A static HTML response including the minimum requirements to load a
+/// _sandbox_ of Apollo Studio.
 const _APOLLO_STUDIO: &'static str = "<!DOCTYPE html>\
 <html>\
   <head>\
