@@ -28,6 +28,12 @@ impl From<uuid::Uuid> for UUID {
     }
 }
 
+impl From<&uuid::Uuid> for UUID {
+    fn from(a_uuid: &uuid::Uuid) -> Self {
+        UUID(a_uuid.to_string())
+    }
+}
+
 ///
 /// A [universally unique identifier][rfc] v4  
 ///
