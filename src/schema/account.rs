@@ -28,4 +28,8 @@ impl Account {
             .iter()
             .fold(0.0, |balance, txn| balance + txn)
     }
+
+    pub async fn transactions(&self) -> Vec<f64> {
+        self.transactions.clone()
+    }
 }
