@@ -7,6 +7,8 @@ pub struct Account {
     transactions: Vec<f64>,
 }
 
+/// An `Account` is an entity that can store resources. Resources can be
+/// exchanged with other accounts through transactions.
 #[Object]
 impl Account {
     #[graphql(skip)]
